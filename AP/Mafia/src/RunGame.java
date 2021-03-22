@@ -11,37 +11,80 @@ public class RunGame {
         Player[] players = null;
         int playersIndicator = 0;
         String[] splits = null;
+        String[] assignedPlayers = null;
         Scanner scanner = new Scanner(System.in);
-        while (!isMafiaWin && !isJokerWin && !isVillagerWin){
+        Outer: while (!isMafiaWin && !isJokerWin && !isVillagerWin){
             String command = scanner.next();
             switch (command){
                 case "create_game":
-                    String names = scanner.nextLine();
-                    splits = names.split(" ");
-                    numberOfPlayers = splits.length;
-                    players = new Player[numberOfPlayers];
-                    break;
-                case "assign_role":
-                    String thisName = scanner.next();
-                    for(String name : splits){
-                        if (name.equals(thisName)){
-                            String thisRole = scanner.next();
-                            Player foundRole = findRole(name,thisRole);
-                            if (thisRole == null)
-                            {
-                                System.out.println("Nayaftam rolo");
-                                continue;
-                            }
-                            players[playersIndicator++] = foundRole;
-                        }
+                    if (!isGameCreated){
+                        String names = scanner.nextLine().replaceFirst(" ","");
+                        splits = names.split(" ");
+                        numberOfPlayers = splits.length;
+                        players = new Player[numberOfPlayers];
+                        assignedPlayers = new String[numberOfPlayers];
+                        isGameCreated = true;
+                    }
+                    else {
+                        System.out.println("aval create bad bazi!");
+                        continue;
                     }
                     break;
+                case "assign_role":
+                    if (!isGameCreated){
+                        System.out.println("no game created");
+                        continue Outer;
+                    }
+                    if (playersIndicator == players.length){
+                        System.out.println("all players have role");
+                        continue Outer;
+                    }
+                    String thisName = scanner.next();
+                    for (int i = 0; i < playersIndicator; i++) {
+                        if (thisName.equals(assignedPlayers[i])){
+                            System.out.println("this player already has role");
+                            continue Outer;
+                        }
+                    }
+                    String foundName = null;
+                    for(String name : splits)
+                        if (name.equals(thisName))
+                            foundName = name;
+                    if (foundName == null){
+                        System.out.println("user not found");
+                        continue Outer;
+                    }
+                    String thisRole = scanner.next();
+                    Player foundRole = findRole(foundName,thisRole);
+                    if (foundRole == null)
+                    {
+                        System.out.println("role not found");
+                        continue;
+                    }
+                    assignedPlayers[playersIndicator] = foundName;
+                    players[playersIndicator++] = foundRole;
+
+                    break;
                 case "start_game":
-                    if (isGameCreated) {
-                        if (!isGameStarted)
-                            isGameStarted = true;
-                        else System.out.println("bazi shoroo shode ghablan!");
-                    }else System.out.println("bazi sakhte !shode ghablan!");
+                    if (!isGameCreated){
+                        System.out.println("no game created");
+                        continue Outer;
+                    }
+                    if (isGameStarted){
+                        System.out.println("game has already started");
+                        continue Outer;
+                    }
+                    if (hasVoidElement(players)){
+                        System.out.println("one or more player do not have a role");
+                        continue Outer;
+                    }
+                    for(Player p : players){
+                        System.out.print(p.getName());
+                        System.out.println(": " + p.getClass().getName());
+                        isGameStarted = true;
+                    }
+                    System.out.println();
+                    System.out.println("Ready? Set! Go.");
                     break;
             }
         }
@@ -58,5 +101,8 @@ public class RunGame {
             case "silencer": return new Silencer(name);
         }
         return null;
+    }
+    public static boolean hasVoidElement(Player[] players){
+        return players[players.length-1] == null;
     }
 }

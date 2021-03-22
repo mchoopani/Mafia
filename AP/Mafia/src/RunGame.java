@@ -1,6 +1,8 @@
 import java.util.Scanner;
 
 public class RunGame {
+    static Scanner scanner = new Scanner(System.in);
+    static int numberOfDay = 1;
     public static void main(String[] args) {
         boolean isMafiaWin = false;
         boolean isVillagerWin = false;
@@ -12,7 +14,6 @@ public class RunGame {
         int playersIndicator = 0;
         String[] splits = null;
         String[] assignedPlayers = null;
-        Scanner scanner = new Scanner(System.in);
         Outer: while (!isMafiaWin && !isJokerWin && !isVillagerWin){
             String command = scanner.next();
             switch (command){
@@ -26,7 +27,7 @@ public class RunGame {
                         isGameCreated = true;
                     }
                     else {
-                        System.out.println("aval create bad bazi!");
+                        System.out.println("game has created before");
                         continue;
                     }
                     break;
@@ -85,6 +86,8 @@ public class RunGame {
                     }
                     System.out.println();
                     System.out.println("Ready? Set! Go.");
+                    sunRise(players);
+                    sunRise(players);
                     break;
             }
         }
@@ -104,5 +107,60 @@ public class RunGame {
     }
     public static boolean hasVoidElement(Player[] players){
         return players[players.length-1] == null;
+    }
+    public static Player findPlayer(String name,Player[] players){
+        Player output = null;
+        for(Player player : players){
+            if (player.getName().equals(name)) {
+                output = player;
+                break;
+            }
+        }
+        return output;
+    }
+    public static void sunRise(Player[] players){
+        System.out.println("Day " + numberOfDay);
+        while (true){
+            String voterName = scanner.next();
+            if (voterName.equals("end_vote")){
+                break;
+            }
+            String voteeName = scanner.next();
+            Player voter = findPlayer(voterName,players);
+            Player votee = findPlayer(voteeName,players);
+            if (voter == null || votee == null){
+                System.out.println("user not found");
+                continue;
+            }
+            if (votee.isKilled){
+                System.out.println("votee already dead");
+                continue;
+            }
+            if (!voter.giveVote(votee)){
+                System.out.println("voter is silenced");
+            }
+        }
+        Player targetPlayer = null;
+        int max = 0;
+        for(Player player : players){
+            if (player.voteNum > max){
+                max = player.voteNum;
+                targetPlayer = player;
+            }
+        }
+        int sum = 0;
+        for(Player player : players)
+            if (player.voteNum == max)
+                sum++;
+        if (sum > 1){
+            System.out.println("nobody died");
+            return;
+        }
+        if (targetPlayer instanceof Joker){
+            System.out.println("Joker won!");
+            System.exit(0);
+        }
+        System.out.println(targetPlayer.getName() + " died");
+        targetPlayer.kill();
     }
 }

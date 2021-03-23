@@ -2,6 +2,8 @@ public abstract class Player {
     private String name;
     public boolean isKilled = false;
     public boolean isSilent = false;
+    public boolean isSavedByDoctor = false;
+    public boolean hasRoleOnNight;
     public int voteNum = 0;
     public Player(String name) {
         setName(name);
@@ -30,4 +32,5 @@ public abstract class Player {
     public void kill(){
         isKilled = true;
     }
+    public abstract void playRoleOnNight(Player targetPlayer);
 }

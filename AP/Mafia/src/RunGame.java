@@ -3,10 +3,9 @@ import java.util.Scanner;
 public class RunGame {
     static Scanner scanner = new Scanner(System.in);
     static int numberOfDay = 1;
+    public static boolean isMafiaWon = false;
+    public static boolean isVillagerWon = false;
     public static void main(String[] args) {
-        boolean isMafiaWin = false;
-        boolean isVillagerWin = false;
-        boolean isJokerWin = false;
         boolean isGameStarted = false;
         boolean isGameCreated = false;
         int numberOfPlayers = 0;
@@ -14,7 +13,7 @@ public class RunGame {
         int playersIndicator = 0;
         String[] splits = null;
         String[] assignedPlayers = null;
-        Outer: while (!isMafiaWin && !isJokerWin && !isVillagerWin){
+        Outer: while (true){
             String command = scanner.next();
             switch (command){
                 case "create_game":
@@ -86,11 +85,20 @@ public class RunGame {
                     }
                     System.out.println();
                     System.out.println("Ready? Set! Go.");
-                    sunRise(players);
-                    sunRise(players);
-                    break;
+                    while (true){
+                        sunRise(players);
+                        if(censusPlayers(players,false))
+                            break Outer;
+                        sunSet(players);
+                        if(censusPlayers(players,false))
+                            break Outer;
+                    }
             }
         }
+        if (isMafiaWon)
+            System.out.println("Mafia Won!");
+        else
+            System.out.println("Villager Won!");
     }
     public static Player findRole(String name , String role){
         switch (role){
@@ -140,10 +148,17 @@ public class RunGame {
                 System.out.println("voter is silenced");
             }
         }
+        voteCounting(players);
+    }
+    public static void resetVotes(Player[] players){
+        for(Player player : players)
+            player.voteNum = 0;
+    }
+    public static void voteCounting(Player[] players){
         Player targetPlayer = null;
         int max = 0;
         for(Player player : players){
-            if (player.voteNum > max){
+            if (player.voteNum >= max){
                 max = player.voteNum;
                 targetPlayer = player;
             }
@@ -162,5 +177,66 @@ public class RunGame {
         }
         System.out.println(targetPlayer.getName() + " died");
         targetPlayer.kill();
+        resetVotes(players);
+    }
+    public static void sunSet(Player[] players){
+        System.out.println("Night " + numberOfDay++);
+        for(Player player : players)
+            if (player.hasRoleOnNight)
+                System.out.println(player.getName() + ": " + player.getClass().getName());
+        while (true){
+            String firstPlayerName = scanner.next();
+            if (firstPlayerName.equals("end_night"))
+                break;
+            String secondPlayerName = scanner.next();
+            Player firstPlayer = findPlayer(firstPlayerName,players);
+            Player secondPlayer = findPlayer(secondPlayerName,players);
+            if (!firstPlayer.hasRoleOnNight){
+                System.out.println("user can not wake up during night");
+                continue;
+            }
+            if (firstPlayer == null || secondPlayer == null){
+                System.out.println("user not joined");
+                continue;
+            }
+            if (firstPlayer.isKilled || secondPlayer.isKilled){
+                System.out.println("user is dead");
+                continue;
+            }
+            int roleIndicator = 0;
+            if (firstPlayer instanceof Silencer){
+                if (roleIndicator == 1){
+                    firstPlayer.giveVote(secondPlayer);
+                }
+                if (roleIndicator++ == 0)
+                    ((Silencer) firstPlayer).silent(secondPlayer);
+                continue;
+            }
+            firstPlayer.playRoleOnNight(secondPlayer);
+        }
+        voteCounting(players);
+    }
+    public static boolean censusPlayers(Player[] players,boolean wantOutput){
+        int sumOfMafia = 0;
+        int sumOfVillager = 0;
+        for (Player player : players) {
+            if (player instanceof MafiaGroup)
+                sumOfMafia++;
+            else if (player instanceof VillagerGroup)
+                sumOfVillager++;
+        }
+        if (wantOutput){
+            System.out.println("Mafia = " + sumOfMafia);
+            System.out.println("Villager = " + sumOfVillager);
+        }
+        if (sumOfMafia == 0){
+            isVillagerWon = true;
+            return true;
+        }
+        else if (sumOfVillager <= sumOfMafia) {
+            isMafiaWon = true;
+            return true;
+        }
+        return false;
     }
 }

@@ -17,7 +17,7 @@ public abstract class Player {
         this.name = name;
     }
     public boolean giveVote(Player player){
-        if (!player.isSilent){
+        if (!this.isSilent){
             player.getVote();
             return true;
         }

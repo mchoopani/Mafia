@@ -5,6 +5,10 @@ public class RunGame {
     static int numberOfDay = 1;
     public static boolean isMafiaWon = false;
     public static boolean isVillagerWon = false;
+    public static String triedToKill = null;
+    public static String killed = null;
+    public static String silenced = null;
+    public static boolean isNight = false;
     public static void main(String[] args) {
         boolean isGameStarted = false;
         boolean isGameCreated = false;
@@ -128,6 +132,8 @@ public class RunGame {
     }
     public static void sunRise(Player[] players){
         System.out.println("Day " + numberOfDay);
+        if (numberOfDay != 1)
+            System.out.println(dayStatus(triedToKill,killed,silenced));
         while (true){
             String voterName = scanner.next();
             if (voterName.equals("end_vote")){
@@ -149,6 +155,8 @@ public class RunGame {
             }
         }
         voteCounting(players);
+        isNight = true;
+        killed = null;
     }
     public static void resetVotes(Player[] players){
         for(Player player : players)
@@ -156,6 +164,8 @@ public class RunGame {
     }
     public static void voteCounting(Player[] players){
         Player targetPlayer = null;
+        triedToKill = null;
+        killed = null;
         int max = 0;
         for(Player player : players){
             if (player.voteNum >= max){
@@ -164,23 +174,34 @@ public class RunGame {
             }
         }
         int sum = 0;
+        if (max != 0){
+            triedToKill = "";
+        }
         for(Player player : players)
-            if (player.voteNum == max)
+            if (player.voteNum == max) {
                 sum++;
+                if (max != 0)
+                    triedToKill += player.getName() + " ";
+            }
         if (sum > 1){
-            System.out.println("nobody died");
+            if (!isNight)
+                System.out.println("nobody died");
             return;
         }
         if (targetPlayer instanceof Joker){
             System.out.println("Joker won!");
             System.exit(0);
         }
-        System.out.println(targetPlayer.getName() + " died");
+        if (!isNight)
+            System.out.println(targetPlayer.getName() + " died");
+        else
+            killed = targetPlayer.getName();
         targetPlayer.kill();
         resetVotes(players);
     }
     public static void sunSet(Player[] players){
         System.out.println("Night " + numberOfDay++);
+        int roleIndicator = 0;
         for(Player player : players)
             if (player.hasRoleOnNight)
                 System.out.println(player.getName() + ": " + player.getClass().getName());
@@ -191,30 +212,32 @@ public class RunGame {
             String secondPlayerName = scanner.next();
             Player firstPlayer = findPlayer(firstPlayerName,players);
             Player secondPlayer = findPlayer(secondPlayerName,players);
-            if (!firstPlayer.hasRoleOnNight){
-                System.out.println("user can not wake up during night");
-                continue;
-            }
             if (firstPlayer == null || secondPlayer == null){
                 System.out.println("user not joined");
+                continue;
+            }
+            if (!firstPlayer.hasRoleOnNight){
+                System.out.println("user can not wake up during night");
                 continue;
             }
             if (firstPlayer.isKilled || secondPlayer.isKilled){
                 System.out.println("user is dead");
                 continue;
             }
-            int roleIndicator = 0;
             if (firstPlayer instanceof Silencer){
                 if (roleIndicator == 1){
                     firstPlayer.giveVote(secondPlayer);
                 }
-                if (roleIndicator++ == 0)
+                if (roleIndicator++ == 0) {
                     ((Silencer) firstPlayer).silent(secondPlayer);
+                    silenced = secondPlayerName;
+                }
                 continue;
             }
             firstPlayer.playRoleOnNight(secondPlayer);
         }
         voteCounting(players);
+        isNight = false;
     }
     public static boolean censusPlayers(Player[] players,boolean wantOutput){
         int sumOfMafia = 0;
@@ -238,5 +261,12 @@ public class RunGame {
             return true;
         }
         return false;
+    }
+    public static String dayStatus(String triedToKill, String killed, String silenced){
+        String output = "";
+        output += triedToKill != null ? "mafia tried to kill " + triedToKill + "\n" : "";
+        output += killed != null ? killed + " was killed\n" : "";
+        output += silenced != null ? "Silenced " + silenced : "";
+        return output;
     }
 }

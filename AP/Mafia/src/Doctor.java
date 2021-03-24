@@ -4,7 +4,7 @@ public class Doctor extends VillagerGroup {
         hasRoleOnNight = true;
     }
     public void savePlayer(Player player){
-        player.isSavedByDoctor = true;
+        player.SavedByDoctor = true;
 
     }
 

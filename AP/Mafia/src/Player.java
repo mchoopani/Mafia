@@ -2,9 +2,10 @@ public abstract class Player {
     private String name;
     public boolean isKilled = false;
     public boolean isSilent = false;
-    public boolean isSavedByDoctor = false;
+    public boolean SavedByDoctor = false;
     public boolean hasRoleOnNight;
     public int voteNum = 0;
+    protected int hearts = 0 ;
     public Player(String name) {
         setName(name);
     }
@@ -30,7 +31,14 @@ public abstract class Player {
         this.voteNum = 0;
     }
     public void kill(){
-        isKilled = true;
+        if (!SavedByDoctor)
+            if (!haveEnoughHearts())
+                isKilled = true;
+            else
+                hearts--;
     }
     public abstract void playRoleOnNight(Player targetPlayer);
+    public boolean haveEnoughHearts(){
+        return hearts==1;
+    }
 }

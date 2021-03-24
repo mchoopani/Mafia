@@ -14,6 +14,7 @@ public class RunGame {
         boolean isGameCreated = false;
         int numberOfPlayers = 0;
         Player[] players = null;
+        Player[] playersHistory = null;
         int playersIndicator = 0;
         String[] splits = null;
         String[] assignedPlayers = null;
@@ -26,6 +27,7 @@ public class RunGame {
                         splits = names.split(" ");
                         numberOfPlayers = splits.length;
                         players = new Player[numberOfPlayers];
+                        playersHistory = new Player[numberOfPlayers];
                         assignedPlayers = new String[numberOfPlayers];
                         isGameCreated = true;
                     }
@@ -66,8 +68,12 @@ public class RunGame {
                         continue;
                     }
                     assignedPlayers[playersIndicator] = foundName;
+                    playersHistory[playersIndicator] = foundRole;
                     players[playersIndicator++] = foundRole;
 
+                    break;
+                case "get_game_state":
+                    System.out.println(censusPlayers(players, true));
                     break;
                 case "start_game":
                     if (!isGameCreated){
@@ -82,18 +88,16 @@ public class RunGame {
                         System.out.println("one or more player do not have a role");
                         continue Outer;
                     }
-                    for(Player p : players){
-                        System.out.print(p.getName());
-                        System.out.println(": " + p.getClass().getName());
-                        isGameStarted = true;
-                    }
+                    isGameStarted = true;
                     System.out.println();
                     System.out.println("Ready? Set! Go.");
                     while (true){
-                        sunRise(players);
+                        sunRise(players,playersHistory);
+                        players = throwOutDead(players);
                         if(censusPlayers(players,false))
                             break Outer;
-                        sunSet(players);
+                        sunSet(players,playersHistory);
+                        players = throwOutDead(players);
                         if(censusPlayers(players,false))
                             break Outer;
                     }
@@ -130,18 +134,23 @@ public class RunGame {
         }
         return output;
     }
-    public static void sunRise(Player[] players){
+    public static void sunRise(Player[] players, Player[] playersHistory){
+
         System.out.println("Day " + numberOfDay);
         if (numberOfDay != 1)
             System.out.println(dayStatus(triedToKill,killed,silenced));
+        for(Player p : players){
+            System.out.print(p.getName());
+            System.out.println(": " + p.getClass().getName());
+        }
         while (true){
             String voterName = scanner.next();
             if (voterName.equals("end_vote")){
                 break;
             }
             String voteeName = scanner.next();
-            Player voter = findPlayer(voterName,players);
-            Player votee = findPlayer(voteeName,players);
+            Player voter = findPlayer(voterName,playersHistory);
+            Player votee = findPlayer(voteeName,playersHistory);
             if (voter == null || votee == null){
                 System.out.println("user not found");
                 continue;
@@ -168,7 +177,7 @@ public class RunGame {
         killed = null;
         int max = 0;
         for(Player player : players){
-            if (player.voteNum >= max){
+            if (player.voteNum >= max && !player.SavedByDoctor){
                 max = player.voteNum;
                 targetPlayer = player;
             }
@@ -178,7 +187,7 @@ public class RunGame {
             triedToKill = "";
         }
         for(Player player : players)
-            if (player.voteNum == max) {
+            if (player.voteNum == max && !player.SavedByDoctor) {
                 sum++;
                 if (max != 0)
                     triedToKill += player.getName() + " ";
@@ -195,33 +204,38 @@ public class RunGame {
         if (!isNight)
             System.out.println(targetPlayer.getName() + " died");
         else
-            killed = targetPlayer.getName();
+            if (!targetPlayer.SavedByDoctor && !targetPlayer.haveEnoughHearts())
+                killed = targetPlayer.getName();
+        if (targetPlayer.haveEnoughHearts())
+                triedToKill = null;
         targetPlayer.kill();
         resetVotes(players);
     }
-    public static void sunSet(Player[] players){
+    public static void sunSet(Player[] players, Player[] playersHistory){
         System.out.println("Night " + numberOfDay++);
         int roleIndicator = 0;
-        for(Player player : players)
+        for(Player player : players) {
             if (player.hasRoleOnNight)
                 System.out.println(player.getName() + ": " + player.getClass().getName());
+            player.isSilent = false;
+        }
         while (true){
             String firstPlayerName = scanner.next();
             if (firstPlayerName.equals("end_night"))
                 break;
             String secondPlayerName = scanner.next();
-            Player firstPlayer = findPlayer(firstPlayerName,players);
-            Player secondPlayer = findPlayer(secondPlayerName,players);
+            Player firstPlayer = findPlayer(firstPlayerName,playersHistory);
+            Player secondPlayer = findPlayer(secondPlayerName,playersHistory);
             if (firstPlayer == null || secondPlayer == null){
                 System.out.println("user not joined");
                 continue;
             }
-            if (!firstPlayer.hasRoleOnNight){
-                System.out.println("user can not wake up during night");
-                continue;
-            }
             if (firstPlayer.isKilled || secondPlayer.isKilled){
                 System.out.println("user is dead");
+                continue;
+            }
+            if (!firstPlayer.hasRoleOnNight){
+                System.out.println("user can not wake up during night");
                 continue;
             }
             if (firstPlayer instanceof Silencer){
@@ -268,5 +282,21 @@ public class RunGame {
         output += killed != null ? killed + " was killed\n" : "";
         output += silenced != null ? "Silenced " + silenced : "";
         return output;
+    }
+    public static Player[] throwOutDead(Player[] players){
+        int newSize = 0;
+        for(Player player : players){
+            if (!player.isKilled)
+                newSize++;
+            player.SavedByDoctor = false;
+        }
+        Player[] newPlayers = new Player[newSize];
+        int i = 0;
+        for (Player player: players){
+            if (player.isKilled)
+                continue;
+            newPlayers[i++] = player;
+        }
+        return newPlayers;
     }
 }

@@ -73,7 +73,7 @@ public class RunGame {
 
                     break;
                 case "get_game_state":
-                    System.out.println(censusPlayers(players, true));
+                    censusPlayers(players, true);
                     break;
                 case "start_game":
                     if (!isGameCreated){
@@ -148,6 +148,10 @@ public class RunGame {
             String voterName = scanner.next();
             if (voterName.equals("end_vote"))
                 break;
+            if (voterName.equals("get_game_state")){
+                censusPlayers(players, true);
+                continue;
+            }
             String voteeName = scanner.next();
             Player voter = findPlayer(voterName,playersHistory);
             Player votee = findPlayer(voteeName,playersHistory);
@@ -225,6 +229,10 @@ public class RunGame {
             String firstPlayerName = scanner.next();
             if (firstPlayerName.equals("end_night"))
                 break;
+            if (firstPlayerName.equals("get_game_state")){
+                censusPlayers(players, true);
+                continue;
+            }
             String secondPlayerName = scanner.next();
             Player firstPlayer = findPlayer(firstPlayerName,playersHistory);
             Player secondPlayer = findPlayer(secondPlayerName,playersHistory);

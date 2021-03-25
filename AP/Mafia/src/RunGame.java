@@ -94,10 +94,12 @@ public class RunGame {
                     while (true){
                         sunRise(players,playersHistory);
                         players = throwOutDead(players);
+                        resetVotes(players);
                         if(censusPlayers(players,false))
                             break Outer;
                         sunSet(players,playersHistory);
                         players = throwOutDead(players);
+                        resetVotes(players);
                         if(censusPlayers(players,false))
                             break Outer;
                     }
@@ -135,7 +137,6 @@ public class RunGame {
         return output;
     }
     public static void sunRise(Player[] players, Player[] playersHistory){
-
         System.out.println("Day " + numberOfDay);
         if (numberOfDay != 1)
             System.out.println(dayStatus(triedToKill,killed,silenced));
@@ -145,9 +146,8 @@ public class RunGame {
         }
         while (true){
             String voterName = scanner.next();
-            if (voterName.equals("end_vote")){
+            if (voterName.equals("end_vote"))
                 break;
-            }
             String voteeName = scanner.next();
             Player voter = findPlayer(voterName,playersHistory);
             Player votee = findPlayer(voteeName,playersHistory);
@@ -168,8 +168,11 @@ public class RunGame {
         killed = null;
     }
     public static void resetVotes(Player[] players){
-        for(Player player : players)
+        for(Player player : players) {
             player.voteNum = 0;
+            if (player instanceof Detective)
+                ((Detective)player).getReportRecently = false;
+        }
     }
     public static void voteCounting(Player[] players){
         Player targetPlayer = null;
@@ -209,7 +212,6 @@ public class RunGame {
         if (targetPlayer.haveEnoughHearts())
                 triedToKill = null;
         targetPlayer.kill();
-        resetVotes(players);
     }
     public static void sunSet(Player[] players, Player[] playersHistory){
         System.out.println("Night " + numberOfDay++);
@@ -239,8 +241,8 @@ public class RunGame {
                 continue;
             }
             if (firstPlayer instanceof Silencer){
-                if (roleIndicator == 1){
-                    firstPlayer.giveVote(secondPlayer);
+                if (roleIndicator != 0){
+                    firstPlayer.setLastVotee(secondPlayer);
                 }
                 if (roleIndicator++ == 0) {
                     ((Silencer) firstPlayer).silent(secondPlayer);
@@ -250,8 +252,25 @@ public class RunGame {
             }
             firstPlayer.playRoleOnNight(secondPlayer);
         }
+        for(Player player : players){
+            if (player.lastVotee != null) {
+                player.giveVote(player.lastVotee);
+                player.lastVotee = null;
+            }
+        }
         voteCounting(players);
         isNight = false;
+        boolean isSwapCompleted = false;
+//        if (scanner.next().equals("swap_character")) {
+//            String firstPlayerName = scanner.next();
+//            String secondPlayerName = scanner.next();
+//            Player firstPlayer = findPlayer(firstPlayerName,playersHistory);
+//            Player secondPlayer = findPlayer(secondPlayerName,playersHistory);
+//            if (firstPlayer.isKilled || secondPlayer.isKilled){
+//                System.out.println("user is dead");
+//                return;
+//            }
+//        }
     }
     public static boolean censusPlayers(Player[] players,boolean wantOutput){
         int sumOfMafia = 0;

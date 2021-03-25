@@ -1,4 +1,5 @@
 public class Detective extends VillagerGroup{
+    boolean getReportRecently = false;
     public Detective(String name) {
         super(name);
         hasRoleOnNight = true;
@@ -10,10 +11,19 @@ public class Detective extends VillagerGroup{
     }
     @Override
     public void playRoleOnNight(Player targetPlayer) {
-        if (isMafia(targetPlayer)){
-            System.out.println("YES");
+        if (targetPlayer.isKilled){
+            System.out.println("suspect is dead");
             return;
         }
-        System.out.println("NO");
+        if (!getReportRecently) {
+            getReportRecently = true;
+            if (isMafia(targetPlayer)){
+                System.out.println("YES");
+                return;
+            }
+            System.out.println("NO");
+        }
+        else
+            System.out.println("detective has already asked");
     }
 }

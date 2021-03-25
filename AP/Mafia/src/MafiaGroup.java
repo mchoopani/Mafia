@@ -5,6 +5,6 @@ public class MafiaGroup extends Player{
 
     @Override
     public void playRoleOnNight(Player targetPlayer) {
-        this.giveVote(targetPlayer);
+        this.setLastVotee(targetPlayer);
     }
 }

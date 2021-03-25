@@ -6,6 +6,12 @@ public abstract class Player {
     public boolean hasRoleOnNight;
     public int voteNum = 0;
     protected int hearts = 0 ;
+    public Player lastVotee = null;
+
+    public void setLastVotee(Player lastVotee) {
+        this.lastVotee = lastVotee;
+    }
+
     public Player(String name) {
         setName(name);
     }

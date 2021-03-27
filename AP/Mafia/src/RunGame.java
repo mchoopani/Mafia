@@ -122,6 +122,7 @@ public class RunGame {
             case "mafia": return new Mafia(name);
             case "godfather": return new GodFather(name);
             case "silencer": return new Silencer(name);
+            case "informer": return new Informer(name);
         }
         return null;
     }
@@ -218,11 +219,17 @@ public class RunGame {
         if (!isNight)
             System.out.println(targetPlayer.getName() + " died");
         else
-        if (!targetPlayer.SavedByDoctor && !targetPlayer.haveEnoughHearts())
+        if (!targetPlayer.SavedByDoctor && !targetPlayer.haveEnoughHearts()) {
             killed = targetPlayer.getName();
+            if (targetPlayer instanceof Informer)
+                killed += "*-*:)";
+        }
         if (targetPlayer.haveEnoughHearts())
             triedToKill = null;
-        targetPlayer.kill();
+        if (isNight)
+            targetPlayer.kill(players);
+        else
+            targetPlayer.kill();
     }
     public static void sunSet(Player[] players, Player[] playersHistory){
         System.out.println("Night " + numberOfDay++);
@@ -321,8 +328,10 @@ public class RunGame {
     }
     public static String dayStatus(String triedToKill, String killed, String silenced){
         String output = "";
+        boolean isInformer = killed.contains("*-*:)");
+        killed = killed.replace("*-*:)","");
         output += triedToKill != null ? "mafia tried to kill " + triedToKill + "\n" : "";
-        output += killed != null ? killed + " was killed\n" : "";
+        output += killed != null ? killed + " was killed\n" + (isInformer? killed + " was an informer\n":"") : "";
         output += silenced != null ? "Silenced " + silenced + "\n" : "";
         output += firstSwapped + " swapped characters with " + secondSwapped;
         return output;

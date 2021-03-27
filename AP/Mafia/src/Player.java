@@ -36,10 +36,21 @@ public abstract class Player {
     public void resetVote(){
         this.voteNum = 0;
     }
+    public void kill(Player[] players){
+        if (!SavedByDoctor)
+            if (!haveEnoughHearts()) {
+                isKilled = true;
+                if (this instanceof Informer)
+                    System.out.println(((Informer) this).inform(players));
+            }
+            else
+                hearts--;
+    }
     public void kill(){
         if (!SavedByDoctor)
-            if (!haveEnoughHearts())
+            if (!haveEnoughHearts()) {
                 isKilled = true;
+            }
             else
                 hearts--;
     }

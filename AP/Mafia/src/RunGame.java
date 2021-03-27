@@ -8,6 +8,8 @@ public class RunGame {
     public static String triedToKill = null;
     public static String killed = null;
     public static String silenced = null;
+    public static String firstSwapped = null;
+    public static String secondSwapped = null;
     public static boolean isNight = false;
     public static void main(String[] args) {
         boolean isGameStarted = false;
@@ -152,6 +154,11 @@ public class RunGame {
                 censusPlayers(players, true);
                 continue;
             }
+            if (voterName.equals("swap_character")){
+                System.out.println("voting in progress");
+                scanner.nextLine();
+                continue;
+            }
             String voteeName = scanner.next();
             Player voter = findPlayer(voterName,playersHistory);
             Player votee = findPlayer(voteeName,playersHistory);
@@ -211,10 +218,10 @@ public class RunGame {
         if (!isNight)
             System.out.println(targetPlayer.getName() + " died");
         else
-            if (!targetPlayer.SavedByDoctor && !targetPlayer.haveEnoughHearts())
-                killed = targetPlayer.getName();
+        if (!targetPlayer.SavedByDoctor && !targetPlayer.haveEnoughHearts())
+            killed = targetPlayer.getName();
         if (targetPlayer.haveEnoughHearts())
-                triedToKill = null;
+            triedToKill = null;
         targetPlayer.kill();
     }
     public static void sunSet(Player[] players, Player[] playersHistory){
@@ -227,10 +234,30 @@ public class RunGame {
         }
         while (true){
             String firstPlayerName = scanner.next();
-            if (firstPlayerName.equals("end_night"))
+            if (firstPlayerName.equals("end_night")) {
+                scanner.next();
+                String firstPlayerName0 = scanner.next();
+                String secondPlayerName0 = scanner.next();
+                Player firstPlayer0 = findPlayer(firstPlayerName0,playersHistory);
+                Player secondPlayer0 = findPlayer(secondPlayerName0,playersHistory);
+                if (firstPlayer0.isKilled || secondPlayer0.isKilled){
+                    System.out.println("user is dead");
+                    return;
+                }
+                String temp = firstPlayer0.getName();
+                firstPlayer0.setName(secondPlayer0.getName());
+                secondPlayer0.setName(temp);
+                firstSwapped = firstPlayerName0;
+                secondSwapped = secondPlayerName0;
                 break;
+            }
             if (firstPlayerName.equals("get_game_state")){
                 censusPlayers(players, true);
+                continue;
+            }
+            if (firstPlayerName.equals("swap_character")){
+                System.out.println("can’t swap before end of night");
+                scanner.nextLine();
                 continue;
             }
             String secondPlayerName = scanner.next();
@@ -268,17 +295,6 @@ public class RunGame {
         }
         voteCounting(players);
         isNight = false;
-        boolean isSwapCompleted = false;
-//        if (scanner.next().equals("swap_character")) {
-//            String firstPlayerName = scanner.next();
-//            String secondPlayerName = scanner.next();
-//            Player firstPlayer = findPlayer(firstPlayerName,playersHistory);
-//            Player secondPlayer = findPlayer(secondPlayerName,playersHistory);
-//            if (firstPlayer.isKilled || secondPlayer.isKilled){
-//                System.out.println("user is dead");
-//                return;
-//            }
-//        }
     }
     public static boolean censusPlayers(Player[] players,boolean wantOutput){
         int sumOfMafia = 0;
@@ -307,7 +323,8 @@ public class RunGame {
         String output = "";
         output += triedToKill != null ? "mafia tried to kill " + triedToKill + "\n" : "";
         output += killed != null ? killed + " was killed\n" : "";
-        output += silenced != null ? "Silenced " + silenced : "";
+        output += silenced != null ? "Silenced " + silenced + "\n" : "";
+        output += firstSwapped + " swapped characters with " + secondSwapped;
         return output;
     }
     public static Player[] throwOutDead(Player[] players){

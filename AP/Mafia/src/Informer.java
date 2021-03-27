@@ -15,11 +15,13 @@ public class Informer extends VillagerGroup{
                     }
                 if (output != null) return output;
             case 1:
-                for(Player player : players)
+                for(Player player : players) {
+                    if (player == this) continue;
                     if (player instanceof VillagerGroup && player.voteNum != 0) {
                         output = player.getName() + " was voted to be killed";
                         break;
                     }
+                }
                 if (output != null) return output;
             case 2:
                 for(Player player : players)

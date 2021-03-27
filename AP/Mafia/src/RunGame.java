@@ -328,8 +328,9 @@ public class RunGame {
     }
     public static String dayStatus(String triedToKill, String killed, String silenced){
         String output = "";
-        boolean isInformer = killed.contains("*-*:)");
-        killed = killed.replace("*-*:)","");
+        boolean isInformer = killed != null && killed.contains("*-*:)");
+        if (killed != null)
+            killed = killed.replace("*-*:)","");
         output += triedToKill != null ? "mafia tried to kill " + triedToKill + "\n" : "";
         output += killed != null ? killed + " was killed\n" + (isInformer? killed + " was an informer\n":"") : "";
         output += silenced != null ? "Silenced " + silenced + "\n" : "";

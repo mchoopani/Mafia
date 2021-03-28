@@ -1,4 +1,5 @@
 public abstract class Player {
+    // there isn't necessary description, va gar hast degar hosele i nest :)
     private String name;
     public boolean isKilled = false;
     public boolean isSilent = false;

@@ -347,8 +347,8 @@ public class RunGame {
             return;
         }
         // if joker will be died, the game doesn't continue.
-        if (targetPlayer instanceof Joker){
-            System.out.println(targetPlayer.getName() + "is died");
+        if (targetPlayer instanceof Joker && !isNight){
+            System.out.println(targetPlayer.getName() + " is died");
             System.out.println("he/she was JOKER :\\");
             System.out.println("Joker won!");
             System.exit(0);

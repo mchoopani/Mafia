@@ -416,7 +416,10 @@ public class RunGame {
         output += triedToKill != null ? "mafia tried to kill " + triedToKill + "\n" : "";
         output += killed != null ? killed + " was killed\n" + (isInformer? killed + " was an informer\n":"") : "";
         output += silenced != null ? "Silenced " + silenced + "\n" : "";
-        output += firstSwapped + " swapped characters with " + secondSwapped;
+        if (firstSwapped != null)
+            output += firstSwapped + " swapped characters with " + secondSwapped;
+        firstSwapped = null;
+        secondSwapped = null;
         return output;
     }
     // deport killed player
